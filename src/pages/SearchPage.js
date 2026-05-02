@@ -129,10 +129,10 @@ const SearchPage = () => {
 
   // ✅ fetch data when query/page changes
   useEffect(() => {
-    if (query) {
-      fetchData();
-    }
-  }, [fetchData]);
+  if (query) {
+    fetchData();
+  }
+}, [query, fetchData]);   // ✅ FIXED
 
   // ✅ scroll handler (memoized)
   const handleScroll = useCallback(() => {
