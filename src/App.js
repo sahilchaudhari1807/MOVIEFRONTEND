@@ -1,4 +1,4 @@
-import {Outlet} from 'react-router-dom';
+/*import {Outlet} from 'react-router-dom';
 import './App.css';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -45,6 +45,60 @@ function App() {
       <MobileNavigation/>
     </main>
   
+  );
+}
+
+export default App;*/
+
+import { Outlet } from 'react-router-dom';
+import './App.css';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import MobileNavigation from './components/MobileNavigation';
+import axios from 'axios';
+import { useEffect, useCallback } from 'react';
+import { useDispatch } from 'react-redux';
+import { setBannerData, setImageURL } from './store/movieoSlice';
+
+function App() {
+  const dispatch = useDispatch();
+
+  // ✅ useCallback to stabilize functions
+  const fetchTrendingData = useCallback(async () => {
+    try {
+      const response = await axios.get('trending/all/week');
+      dispatch(setBannerData(response.data.results));
+    } catch (error) {
+      console.log("error", error);
+    }
+  }, [dispatch]);
+
+  const fetchConfiguration = useCallback(async () => {
+    try {
+      const response = await axios.get('/configuration');
+      dispatch(
+        setImageURL(response.data.images.secure_base_url + "original")
+      );
+    } catch (error) {
+      console.log("error", error);
+    }
+  }, [dispatch]);
+
+  // ✅ dependencies added correctly
+  useEffect(() => {
+    fetchTrendingData();
+    fetchConfiguration();
+  }, [fetchTrendingData, fetchConfiguration]);
+
+  return (
+    <main className='pb-14 lg:pb-0'>
+      <Header />
+      <div className='min-h-[90vh]'>
+        <Outlet />
+      </div>
+      <Footer />
+      <MobileNavigation />
+    </main>
   );
 }
 
