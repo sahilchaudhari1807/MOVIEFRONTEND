@@ -1,4 +1,4 @@
-import { useEffect, useState} from "react"
+/*import { useEffect, useState} from "react"
 import axios from "axios"
 const useFetchDetails = (endpoint)=>{
     const[data,setData] = useState()
@@ -19,4 +19,35 @@ const useFetchDetails = (endpoint)=>{
      },[endpoint])
     return{ data , loading}
 }
-export default useFetchDetails
+export default useFetchDetails*/
+
+
+import { useEffect, useState } from "react";
+import axios from "axios";
+
+const useFetchDetails = (endpoint) => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(endpoint);
+        setData(response.data);
+      } catch (error) {
+        console.log("error", error);
+      } finally {
+        setLoading(false);  // ✅ always runs
+      }
+    };
+
+    if (endpoint) {
+      fetchData();
+    }
+  }, [endpoint]);   // ✅ correct dependency
+
+  return { data, loading };
+};
+
+export default useFetchDetails;

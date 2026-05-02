@@ -1,4 +1,4 @@
-import React from 'react'
+/*import React from 'react'
 import {  useParams } from 'react-router-dom'
 import useFetchDetails from '../hooks/useFetchDetails'
 import { useSelector } from 'react-redux'
@@ -155,4 +155,166 @@ const navigate = useNavigate()
   )
 }
 
-export default DetailPage
+export default DetailPage*/
+import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import useFetchDetails from '../hooks/useFetchDetails';
+import { useSelector } from 'react-redux';
+import moment from 'moment';
+import Divider from '../components/Divider';
+import HorizontalScollCard from '../components/HorizontalScollCard';
+import useFetch from '../hooks/useFetch';
+
+const DetailPage = () => {
+  const params = useParams();
+  const navigate = useNavigate();
+
+  const imageURL = useSelector(state => state.movieoData.imageURL);
+
+  const { data } = useFetchDetails(`/${params?.explore}/${params?.id}`);
+  const { data: castData } = useFetchDetails(`/${params?.explore}/${params?.id}/credits`);
+  const { data: similarData } = useFetch(`/${params?.explore}/${params?.id}/similar`);
+  const { data: recommendationData } = useFetch(`/${params?.explore}/${params?.id}/recommendations`);
+  const { data: reviewData } = useFetch(`/${params?.explore}/${params?.id}/reviews`);
+
+  // ✅ safe duration handling
+  const duration = data?.runtime
+    ? (Number(data.runtime) / 60).toFixed(1).split(".")
+    : ["0", "0"];
+
+  return (
+    <div>
+
+      {/* Banner */}
+      <div className='w-full h-[280px] relative hidden lg:block'>
+        <div className='w-full h-full'>
+          <img
+            src={imageURL + data?.backdrop_path}
+            alt="movie backdrop"   // ✅ FIXED
+            className='h-full w-full object-cover'
+          />
+        </div>
+        <div className='absolute w-full h-full top-0 bg-gradient-to-t from-neutral-900/90 to-transparent'></div>
+      </div>
+
+      <div className='container mx-auto px-3 py-16 lg:py-0 flex flex-col lg:flex-row gap-5 lg:gap-10'>
+
+        {/* Poster */}
+        <div className='relative mx-auto lg:-mt-28 lg:mx-0 w-fit min-w-60'>
+          <img
+            src={imageURL + data?.poster_path}
+            alt="movie poster"   // ✅ FIXED
+            className='h-80 w-60 object-cover rounded'
+          />
+        </div>
+
+        <div>
+          <h2 className='text-2xl lg:text-4xl font-bold text-white'>
+            {data?.title || data?.name}
+          </h2>
+
+          <p className='text-neutral-400'>{data?.tagline}</p>
+
+          <Divider />
+
+          <div className='flex items-center gap-3'>
+            <p>Rating : {Number(data?.vote_average).toFixed(1)}</p>
+            <span>|</span>
+            <p>View : {Number(data?.vote_count)}</p>
+            <span>|</span>
+            <p>Duration : {duration[0]}h {duration[1]}m</p>
+          </div>
+
+          <Divider />
+
+          <div>
+            <h3 className='text-xl font-bold text-white mb-1'>Overview</h3>
+            <p>{data?.overview}</p>
+
+            <Divider />
+
+            <div className='flex items-center gap-3 my-3 text-center'>
+              <p>Status : {data?.status}</p>
+              <span>|</span>
+              <p>
+                Release Date : {moment(data?.release_date).format("MMM Do YYYY")}
+              </p>
+              <span>|</span>
+              <p>Revenue : {Number(data?.revenue)}</p>
+            </div>
+
+            <Divider />
+          </div>
+
+          {/* Director */}
+          <div>
+            <p>
+              <span className='text-white'>Director</span> :
+              {castData?.crew?.[0]?.name || "Not Available"}
+            </p>
+
+            <Divider />
+
+            <p>
+              <span className='text-white'>Writer:</span>{" "}
+              {
+                castData?.crew?.find(
+                  (el) =>
+                    el.job === "Writer" ||
+                    el.job === "Screenplay" ||
+                    el.job === "Story" ||
+                    el.known_for_department === "Writing"
+                )?.name || "Not Available"
+              }
+            </p>
+          </div>
+
+          <Divider />
+
+          {/* Cast */}
+          <h2 className='font-bold text-lg'>Cast :</h2>
+
+          <div className="grid grid-cols-[repeat(auto-fit,96px)] gap-5">
+            {castData?.cast?.map((actor) => (
+              <div
+                key={actor.id}
+                onClick={() => navigate(`/actor/${actor.id}`)}
+                className="cursor-pointer text-center hover:scale-105 transition"
+              >
+                <img
+                  src={
+                    actor.profile_path
+                      ? imageURL + actor.profile_path
+                      : "https://via.placeholder.com/96x96?text=No+Image"
+                  }
+                  alt={actor.name}   // ✅ FIXED
+                  className="w-24 h-24 object-cover rounded-full mx-auto"
+                />
+
+                <p className="font-bold text-sm text-neutral-300 mt-2">
+                  {actor.name}
+                </p>
+
+                <p className="text-xs text-neutral-500">
+                  {actor.character}
+                </p>
+              </div>
+            ))}
+          </div>
+
+        </div>
+      </div>
+
+      {/* Recommendations */}
+      <div>
+        <HorizontalScollCard data={similarData} heading={"Similar " + params?.explore} media_type={params?.explore} />
+        <HorizontalScollCard data={recommendationData} heading={"Recommendation " + params?.explore} media_type={params?.explore} />
+        <HorizontalScollCard data={reviewData} heading={"Review " + params?.explore} media_type={params?.explore} />
+      </div>
+
+    </div>
+  );
+};
+
+export default DetailPage;
+
